@@ -26,7 +26,7 @@ const MiApp = () => (
   </Provider>
 );
 
-hot(module)(MiApp);
+hot(module)(App);
 ReactDOM.render(<MiApp />, document.getElementById("root"));
 
 registerServiceWorker();

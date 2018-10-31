@@ -39,13 +39,10 @@ const styles = theme => {
       justifyContent: "center"
     },
     cardRoot: {
-      marginLeft: "0rem",
-      marginRight: "0rem",
       maxWidth: "600px",
       alignSelf: "center",
-      width: "calc(100%)",
+      width: "100%",
       height: "100%",
-      maxHeight: "100%",
       opacity: 0,
       transform: "translateY(100px)",
       transition: "all 0.3s",
@@ -53,9 +50,6 @@ const styles = theme => {
         borderRadius: "0 !important"
       },
       [theme.breakpoints.up("sm")]: {
-        marginLeft: "2rem",
-        marginRight: "2rem",
-        width: "calc(100% - 4rem)",
         maxHeight: "550px",
         "& > div": {
           borderRadius: "16px !important"
@@ -72,7 +66,7 @@ const styles = theme => {
       display: "flex",
       flexDirection: "column",
       flex: 1,
-      maxHeight: "100%",
+
       "& > div": {
         display: "flex",
         flexDirection: "column",

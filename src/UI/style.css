@@ -4,10 +4,11 @@
   flex: 1;
 }
 
-.switch-wrapper > div {
+.switch-wrapper > div > div {
   position: absolute;
   width: 100%;
   top: 0px;
   bottom: 0px;
   display: flex;
+  height: 100%;
 }

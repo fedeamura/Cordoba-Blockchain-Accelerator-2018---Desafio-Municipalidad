@@ -109,58 +109,6 @@ input:-webkit-autofill:active {
   transition: height var(--anim) ease-in-out;
 }
 
-/* Mover-izquierda transition */
-
-.mover-izquierda-leave {
-  transform: translate(0, 0);
-  opacity: 1;
-}
-.mover-izquierda-leave.mover-izquierda-leave-active {
-  transform: translate(100%, 0);
-  opacity: 0;
-  transition: opacity var(--anim) ease-in-out, transform var(--anim) ease-in-out;
-}
-
-.mover-izquierda-enter {
-  transform: translate(-100%, 0);
-  opacity: 0;
-}
-.mover-izquierda-enter.mover-izquierda-enter-active {
-  transform: translate(0, 0);
-  opacity: 1;
-  transition: opacity var(--anim) ease-in-out, transform var(--anim) ease-in-out;
-}
-
-.mover-izquierda-height {
-  transition: height var(--anim) ease-in-out;
-}
-
-/* Mover derecha transition */
-
-.mover-derecha-leave {
-  transform: translate(0, 0);
-  opacity: 1;
-}
-.mover-derecha-leave.mover-derecha-leave-active {
-  transform: translate(-100%, 0);
-  opacity: 0;
-  transition: opacity var(--anim) ease-in-out, transform var(--anim) ease-in-out;
-}
-
-.mover-derecha-enter {
-  transform: translate(100%, 0);
-  opacity: 0;
-}
-.mover-derecha-enter.mover-derecha-enter-active {
-  transform: translate(0, 0);
-  opacity: 1;
-  transition: opacity var(--anim) ease-in-out, transform var(--anim) ease-in-out;
-}
-
-.mover-derecha-height {
-  transition: height var(--anim) ease-in-out;
-}
-
 /* Fade with width transition */
 
 .fade-fast-leave {

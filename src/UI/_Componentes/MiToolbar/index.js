@@ -1,15 +1,7 @@
 import React from "react";
-
-//Styles
 import { withStyles } from "@material-ui/core/styles";
 import classNames from "classnames";
-import styles from "./styles";
-
-//REDUX
-import { connect } from "react-redux";
-import { cerrarSesion } from "@Redux/Actions/usuario";
-import Icon from "@material-ui/core/Icon";
-import { push, replace } from "connected-react-router";
+import { push } from "connected-react-router";
 
 //Componentes
 import AppBar from "@material-ui/core/AppBar";
@@ -20,22 +12,15 @@ import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
 import Avatar from "@material-ui/core/Avatar";
 import LinearProgress from "@material-ui/core/LinearProgress";
-// import Lottie from "react-lottie";
-// import * as animNotificaciones from "@Resources/animaciones/anim_notificaciones.json";
-// const opcionesLottieNotificaciones = {
-//   loop: false,
-//   animationData: animNotificaciones,
 
-//   rendererSettings: {
-//     preserveAspectRatio: "xMidYMid slice"
-//   }
-// };
+//REDUX
+import { connect } from "react-redux";
+import { cerrarSesion } from "@Redux/Actions/usuario";
+import Icon from "@material-ui/core/Icon";
 
 const mapStateToProps = state => {
-  console.log(state);
   return {
-    usuario: state.Usuario.usuario,
-    notificaciones: state.Notificaciones.notificaciones
+    usuario: state.Usuario.usuario
   };
 };
 
@@ -44,11 +29,8 @@ const mapDispatchToProps = dispatch => {
     cerrarSesion: () => {
       dispatch(cerrarSesion());
     },
-    redirigir: url => {
+    redireccionar: url => {
       dispatch(push(url));
-    },
-    replace: url => {
-      dispatch(replace(url));
     }
   };
 };
@@ -58,20 +40,9 @@ class MiToolbar extends React.Component {
     super(props);
 
     this.state = {
-      anchorPopupUsuario: undefined
-      // menuNotificacionesAnchor: undefined,
-      // conNotificaciones: true,
-      // animacionLottiePausada: false
+      anchorPopupUsuario: undefined,
+      datosUsuario: undefined
     };
-  }
-
-  componentDidMount() {
-    // setTimeout(() => {
-    //   this.setState({ conNotificaciones: true, animacionLottiePausada: false });
-    //   setTimeout(() => {
-    //     this.setState({ conNotificaciones: false, animacionLottiePausada: false });
-    //   }, 2000);
-    // }, 500);
   }
 
   onUsuarioPress = event => {
@@ -86,10 +57,11 @@ class MiToolbar extends React.Component {
 
   onBotonCerrarSesionPress = () => {
     if (this.props.cargando) return;
-    this.setState({ anchorPopupUsuario: null });
+
     this.props.cerrarSesion();
-    this.props.replace("/Login");
-    // window.location.href = window.Config.URL_LOGIN;
+    // let { urlLogin } = this.props;
+    // if (urlLogin == undefined) return;
+    this.props.redireccionar("/Login");
   };
 
   handleDrawerClose = () => {
@@ -107,82 +79,62 @@ class MiToolbar extends React.Component {
     }
   };
 
-  onBotonNotificacionesClick = event => {
-    if (this.props.cargando) return;
-    this.setState({ menuNotificacionesAnchor: event.currentTarget });
+  handleClickLogo = () => {
+    // let { urlInicio } = this.props;
+    // if (urlInicio == undefined) return;
+    this.props.redireccionar("/Dashboard");
   };
 
-  onMenuNotificacionesClose = () => {
-    if (this.props.cargando) return;
-    this.setState({ menuNotificacionesAnchor: null });
-  };
-
-  onTituloClick = () => {
-    // console.log("click");
-    this.props.redirigir("/");
-  };
   render() {
-    let { classes, titulo, usuario } = this.props;
-    if (usuario == undefined) return null;
-
-    let urlFotoPerfil = window.Config.URL_CORDOBA_FILES + "/Archivo/" + usuario.identificadorFotoPersonal;
-
+    let { classes, titulo, mostrarLogin } = this.props;
+    mostrarLogin = mostrarLogin === undefined || mostrarLogin !== false;
     return (
       <AppBar position="absolute" className={classNames(classes.appBar)}>
-        <Toolbar disableGutters={true} className={classNames(classes.toolbar, this.props.className)}>
-          {this.props.renderLeftIcon != undefined && this.props.renderLeftIcon()}
+        <Toolbar disableGutters={true} className={classes.toolbar}>
+          {this.props.renderLeftIcon != undefined &&
+            this.props.renderLeftIcon()}
 
           {this.props.renderLeftIcon == undefined &&
             this.props.leftIcon != undefined && (
               <div className={classes.menuButton}>
-                <IconButton color="inherit" aria-label={this.props.leftIconHint || "Boton del toolbar"} onClick={this.props.leftIconClick}>
+                <IconButton
+                  color="inherit"
+                  aria-label={this.props.leftIconHint || "Boton del toolbar"}
+                  onClick={this.props.leftIconClick}
+                >
                   <Icon>{this.props.leftIcon}</Icon>
                 </IconButton>
               </div>
             )}
 
-          {this.props.renderLeftIcon == undefined && this.props.leftIcon == undefined && <div style={{ width: 16 }} />}
-
           {/* Logo muni */}
-          {this.props.renderLogo != undefined && this.props.renderLogo()}
+          {
+            <img
+              onClick={this.handleClickLogo}
+              className={classes.logoMuni}
+              src="https://www.cordoba.gob.ar/wp-content/uploads/2016/07/logo-oscuro-01.png"
+            />
+          }
 
           <Typography
             variant="title"
             color="inherit"
             noWrap
             className={classes.title}
-            onClick={this.onTituloClick}
-            style={{ cursor: "pointer" }}
           >
             {titulo}
           </Typography>
 
-          {/* Boton notificaciones */}
-          {/* <IconButton onClick={this.onBotonNotificacionesClick} color="inherit" style={{ overflow: "hidden" }}>
-            <Lottie
-              isPaused={this.state.animacionLottiePausada == true}
-              options={opcionesLottieNotificaciones}
-              height={48}
-              width={48}
-              direction={this.state.conNotificaciones == true ? 1 : -1}
-              eventListeners={[
-                {
-                  eventName: "enterFrame",
-                  callback: a => {
-                    if (a.currentTime > 50) {
-                      this.setState({ animacionLottiePausada: true });
-                    }
-                  }
-                }
-              ]}
-              style={{ transform: "scale(4)" }}
-            />
-          </IconButton> */}
-
           {/* Icono del usuario */}
-          <IconButton onClick={this.onUsuarioPress} color="inherit">
-            <Avatar alt="Menu del usuario" src={urlFotoPerfil + "/3"} className={classNames(classes.icono)} />
-          </IconButton>
+          {mostrarLogin && (
+            <IconButton onClick={this.onUsuarioPress} color="inherit">
+              <Avatar
+                alt="Menu del usuario"
+                src="https://servicios2.cordoba.gov.ar/CordobaFiles/Archivo/f_qdag0f9irgka9xj2l6mbll69gxmhlghezkmkj2mykg1pj0uuhwogqiqfic_c327l9gmyk9tutz1fuq0rc3_z2byq5gcg2j5tjpqcn6jid4x2rlv2nsaa2it7s64d7m2k4h7e_xegt2w8p79uvk4jj42a7uvrcfm1cn8jpq31o4raxvsv8ktwtsa_q6iqbxeop56c_zee/3"
+                className={classNames(classes.icono)}
+              />
+            </IconButton>
+          )}
         </Toolbar>
 
         <Menu
@@ -195,52 +147,118 @@ class MiToolbar extends React.Component {
           onClose={this.onUsuarioMenuClose}
         >
           <div className={classes.menuUsuarioInfo} style={{ display: "flex" }}>
-            <Avatar alt="Menu del usuario" src={urlFotoPerfil + "/2"} className={classNames(classes.icono)} />
+            <Avatar
+              alt="Menu del usuario"
+              src="https://servicios2.cordoba.gov.ar/CordobaFiles/Archivo/f_qdag0f9irgka9xj2l6mbll69gxmhlghezkmkj2mykg1pj0uuhwogqiqfic_c327l9gmyk9tutz1fuq0rc3_z2byq5gcg2j5tjpqcn6jid4x2rlv2nsaa2it7s64d7m2k4h7e_xegt2w8p79uvk4jj42a7uvrcfm1cn8jpq31o4raxvsv8ktwtsa_q6iqbxeop56c_zee/3"
+              className={classNames(classes.icono)}
+            />
             <Typography align="center" variant="subheading" color="inherit">
-              {this.props.usuario.nombre + " " + this.props.usuario.apellido}
+              {this.state.datosUsuario &&
+                this.state.datosUsuario.apellido +
+                  ", " +
+                  this.state.datosUsuario.nombre}
             </Typography>
           </div>
 
-          <MenuItem onClick={this.handleClose}>Mi perfil</MenuItem>
+          {/*<MenuItem onClick={this.handleClose}>Mi perfil</MenuItem>
           <MenuItem divider onClick={this.handleClose}>
             Cambiar contraseña
+          </MenuItem>*/}
+          <MenuItem onClick={this.onBotonCerrarSesionPress}>
+            Cerrar sesión
           </MenuItem>
-          <MenuItem onClick={this.onBotonCerrarSesionPress}>Cerrar sesión</MenuItem>
         </Menu>
 
-        {/* Menu Notificaciones */}
-        {/* <Menu
-          id="menuNotificaciones"
-          anchorEl={this.state.menuNotificacionesAnchor}
-          getContentAnchorEl={null}
-          anchorOrigin={{ vertical: "top", horizontal: "right" }}
-          open={Boolean(this.state.menuNotificacionesAnchor)}
-          onClose={this.onMenuNotificacionesClose}
-          PaperProps={{
-            style: {
-              maxHeight: 300,
-              width: 200
-            }
-          }}
+        <div
+          className={classNames(
+            classes.contenedorCargando,
+            this.props.cargando == true && classes.contenedorCargandoVisible
+          )}
         >
-          <MenuItem>Notificacion 1</MenuItem>
-          <MenuItem>Notificacion 1</MenuItem>
-          <MenuItem>Notificacion 1</MenuItem>
-          <MenuItem>Notificacion 1</MenuItem>
-          <MenuItem>Notificacion 1</MenuItem>
-          <MenuItem>Notificacion 1</MenuItem>
-          <MenuItem>Notificacion 1</MenuItem>
-          <MenuItem>Notificacion 1</MenuItem>
-          <MenuItem>Notificacion 1</MenuItem>
-        </Menu> */}
-
-        <div className={classNames(classes.contenedorCargando, this.props.cargando == true && classes.contenedorCargandoVisible)}>
           <LinearProgress color="secondary" />
         </div>
       </AppBar>
     );
   }
 }
+
+const styles = theme => {
+  return {
+    toolbar: {
+      paddingRight: 24 // keep right padding when drawer closed
+    },
+    toolbarIcon: {
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "flex-end",
+      padding: "0 8px",
+      ...theme.mixins.toolbar
+    },
+    menuButton: {
+      marginLeft: 12,
+      marginRight: 12
+    },
+    appBar: {
+      zIndex: theme.zIndex.drawer + 2
+    },
+    logoMuni: {
+      width: "140px",
+      marginRight: "20px",
+      cursor: "pointer"
+    },
+    title: {
+      borderLeft: "1px solid rgba(0,0,0,0.2)",
+      padding: "10px 0px 10px 20px",
+      flexGrow: 1
+    },
+    icono: {
+      width: 40,
+      height: 40,
+      borderRadius: 40,
+      backgroundColor: "white"
+    },
+    menuUsuario: {
+      "& div:nth-child(2)": {
+        width: "20rem",
+        minWidth: "20rem",
+        maxWidth: "20rem"
+      },
+      "& ul": {
+        paddingTop: 0
+      }
+    },
+    menuUsuarioInfo: {
+      display: "flex",
+      flexDirection: "column",
+      justifyContent: "center",
+      alignItems: "center",
+      padding: theme.spacing.unit * 2,
+      "& h2": {
+        marginLeft: theme.spacing.unit
+      },
+      "& > div": {
+        width: "5rem",
+        height: "5rem",
+        marginBottom: "0.5rem"
+      },
+      "&:focus": {
+        outline: "none"
+      },
+      backgroundColor: "rgba(0,0,0,0.025)",
+      borderBottom: "1px solid rgba(0, 0, 0, 0.095);"
+    },
+    contenedorCargando: {
+      position: "absolute",
+      bottom: 0,
+      width: "100%",
+      opacity: 0,
+      transition: "all 0.3s"
+    },
+    contenedorCargandoVisible: {
+      opacity: 1
+    }
+  };
+};
 
 let componente = undefined;
 componente = withStyles(styles)(MiToolbar);

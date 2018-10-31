@@ -1,4 +1,5 @@
 import React from "react";
+import PropTypes from "prop-types";
 import classNames from "classnames";
 import Select from "react-select";
 import { withStyles } from "@material-ui/core/styles";
@@ -10,6 +11,7 @@ import Chip from "@material-ui/core/Chip";
 import MenuItem from "@material-ui/core/MenuItem";
 import CancelIcon from "@material-ui/icons/Cancel";
 import { emphasize } from "@material-ui/core/styles/colorManipulator";
+import Portal from "@material-ui/core/Portal";
 
 const styles = theme => ({
   root: {
@@ -160,13 +162,13 @@ function MultiValue(props) {
 
 function Menu(props) {
   return (
-    <Paper
-      square
-      className={props.selectProps.classes.paper}
-      {...props.innerProps}
-    >
-      {props.children}
-    </Paper>
+      <Paper
+        square
+        className={props.selectProps.classes.paper}
+        {...props.innerProps}
+      >
+        {props.children}
+      </Paper>
   );
 }
 
@@ -183,7 +185,8 @@ const components = {
 
 let body = undefined;
 class MiSelect extends React.PureComponent {
-  componentDidMount() {}
+  componentDidMount(){
+  }
 
   onOpen = () => {
     // let inputWrapper = $(".Select-control")
@@ -236,7 +239,6 @@ class MiSelect extends React.PureComponent {
           onChange={this.props.onChange}
           placeholder={this.props.placeholder}
           isMulti={this.props.isMulti}
-          isDisabled={this.props.disabled}
         />
       </NoSsr>
     );

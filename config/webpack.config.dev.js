@@ -89,6 +89,7 @@ module.exports = {
       "react-native": "react-native-web",
       "@Redux": "_Redux",
       "@Rules": "_Rules",
+      "@Utils": "_Utils",
       "@Resources": "_Resources",
       "@Componentes": "UI/_Componentes",
       "@UI": "UI"

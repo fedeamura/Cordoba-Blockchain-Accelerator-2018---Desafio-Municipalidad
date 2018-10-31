@@ -1,7 +1,12 @@
 import { USUARIO_LOGIN, USUARIO_CERRAR_SESION } from "@Redux/Constants/index";
 
+let usuario = undefined;
+let savedState = localStorage.getItem("store");
+if (savedState && savedState != "undefined") {
+  usuario = JSON.parse(savedState).Usuario.usuario;
+}
 const initialState = {
-  usuario: undefined
+  usuario: usuario
 };
 
 const reducer = (state = initialState, action) => {

@@ -16,6 +16,8 @@ const store = createStore(
 );
 
 store.subscribe(() => {
+  let state = store.getState();
+  localStorage.setItem('store', JSON.stringify(state));
   console.log(store.getState());
 });
 export default store;

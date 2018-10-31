@@ -80,19 +80,6 @@ class MiPanelMensaje extends React.PureComponent {
           {this.props.mensaje}
         </Typography>
 
-        {this.props.detalle != undefined && (
-          <Typography
-            variant="body2"
-            style={{
-              marginTop: "0px",
-              maxWidth: "30rem",
-              textAlign: "center"
-            }}
-          >
-            {this.props.detalle}
-          </Typography>
-        )}
-
         {tieneBoton && (
           <Button
             color={this.props.botonColor || "default"}

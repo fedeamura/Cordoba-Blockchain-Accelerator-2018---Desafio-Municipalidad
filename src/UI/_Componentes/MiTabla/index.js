@@ -19,14 +19,16 @@ import Checkbox from "@material-ui/core/Checkbox";
 
 /*
 Props esperadas:
+
 ->columns - (obligatorio) - Array columnas - Ej.: { id: 'concepto', type: 'string', numeric: false, disablePadding: true, label: 'Concepto' },
 ->rows - (obligatorio) - Array de objetos con respectivas columnas
+    -atributo de objeto "data": con ese nombre se pueden pasar datos extra a la tabla
 ->orderBy - (obligatorio) - id columna por la cual ordenar inicialmente
 ->order (defecto 'desc') - Sentido para ordenar
 ->getFilasSeleccionadas - Función que obtendrá las un array de filas y otro de los id de aquellas seleccionadas
-->customCell - Funcion que retornara el contenido de la columna del tipo  type: 'customCell', y estará al último
 ->rowType - (defecto 'Concepto') - String que dice el tipo de filas que hay 
-->noCheck - Boolean que determina si la grilla muestra los checks o no
+->check - Boolean que determina si la grilla muestra los checks o no
+->rowsPerPage (defecto 25) - numero de filas por pagina
 */
 
 const mapDispatchToProps = dispatch => ({});
@@ -39,6 +41,27 @@ function desc(a, b, orderBy, orderType) {
 
       dateB = new Date(dateB[1] + "/" + dateB[0] + "/" + dateB[2]);
       dateA = new Date(dateA[1] + "/" + dateA[0] + "/" + dateA[2]);
+      if (dateB < dateA) {
+        return -1;
+      }
+      if (dateB > dateA) {
+        return 1;
+      }
+      return 0;
+    case "datetime":
+      let dateB = b[orderBy].split(" ")[0].split("/");
+      let timeB = b[orderBy].split(" ")[1].split(":");
+      var dateA = a[orderBy].split(" ")[0].split("/");
+      let timeA = a[orderBy].split(" ")[1].split(":");
+
+      dateB = new Date(dateB[1] + "/" + dateB[0] + "/" + dateB[2]);
+      dateB.setHours(timeB[0]);
+      dateB.setMinutes(timeB[1]);
+
+      dateA = new Date(dateA[1] + "/" + dateA[0] + "/" + dateA[2]);
+      dateA.setHours(timeA[0]);
+      dateA.setMinutes(timeA[1]);
+
       if (dateB < dateA) {
         return -1;
       }
@@ -68,7 +91,9 @@ function stableSort(array, cmp) {
 }
 
 function getSorting(order, orderBy, orderType) {
-  return order === "desc" ? (a, b) => desc(a, b, orderBy, orderType) : (a, b) => -desc(a, b, orderBy, orderType);
+  return order === "desc"
+    ? (a, b) => desc(a, b, orderBy, orderType)
+    : (a, b) => -desc(a, b, orderBy, orderType);
 }
 
 class EnhancedTableHead extends React.Component {
@@ -78,13 +103,19 @@ class EnhancedTableHead extends React.Component {
 
   render() {
     const { classes } = this.props;
-    const { onSelectAllClick, order, orderBy, numSelected, rowCount } = this.props;
-    const check = this.props.check || false;
+    const {
+      onSelectAllClick,
+      order,
+      orderBy,
+      numSelected,
+      rowCount
+    } = this.props;
+    const check = this.props.check;
 
     return (
       <TableHead className={classes.tableHead}>
         <TableRow>
-          {check == true && (
+          {check && (
             <TableCell padding="checkbox">
               <Checkbox
                 color="primary"
@@ -101,7 +132,7 @@ class EnhancedTableHead extends React.Component {
                 className={classes.tableCell}
                 key={row.id}
                 numeric={row.numeric}
-                padding={"default"}
+                padding={row.disablePadding ? "none" : "default"}
                 sortDirection={orderBy === row.id ? order : false}
               >
                 <TableSortLabel
@@ -132,23 +163,29 @@ EnhancedTableHead.propTypes = {
 
 EnhancedTableHead = withStyles(toolbarStyles)(EnhancedTableHead);
 
-class MiTabla extends React.Component {
+class MiTabla extends React.PureComponent {
   constructor(props) {
     super(props);
 
-    var data = (props.rows || []).map((row, key) => {
-      row.id = key;
-      return row;
-    });
+    const gridRows = props.rows || [];
+
+    var data =
+      (gridRows.length > 0 &&
+        !gridRows[0].id &&
+        gridRows.map((row, key) => {
+          row.id = key;
+          return row;
+        })) ||
+      gridRows;
 
     this.state = {
       order: this.props.order || "desc",
       orderBy: this.props.orderBy,
       orderType: "string",
-      selected: this.props.selected || [],
+      selected: [],
       data: data,
-      page: this.props.page || 0,
-      rowsPerPage: this.props.rowPerPage || 10
+      page: 0,
+      rowsPerPage: this.props.rowsPerPage || 25
     };
   }
 
@@ -158,11 +195,9 @@ class MiTabla extends React.Component {
       return row;
     });
 
-    if (this.state.data != data) {
-      this.setState({
-        data: data
-      });
-    }
+    this.setState({
+      data: data
+    });
   }
 
   handleRequestSort = (event, property, colType) => {
@@ -186,12 +221,11 @@ class MiTabla extends React.Component {
       this.setState({ selected: newSelected });
     }
 
-    if (this.props.getFilasSeleccionadas) this.props.getFilasSeleccionadas(this.state.data, newSelected);
+    if (this.props.getFilasSeleccionadas)
+      this.props.getFilasSeleccionadas(this.state.data, newSelected);
   };
 
-  handleClick = (event, id) => {};
-
-  handleCheckboxClick = (event, id) => {
+  handleClick = (event, id) => {
     const { selected } = this.state;
     const selectedIndex = selected.indexOf(id);
     let newSelected = [];
@@ -203,11 +237,16 @@ class MiTabla extends React.Component {
     } else if (selectedIndex === selected.length - 1) {
       newSelected = newSelected.concat(selected.slice(0, -1));
     } else if (selectedIndex > 0) {
-      newSelected = newSelected.concat(selected.slice(0, selectedIndex), selected.slice(selectedIndex + 1));
+      newSelected = newSelected.concat(
+        selected.slice(0, selectedIndex),
+        selected.slice(selectedIndex + 1)
+      );
     }
 
     this.setState({ selected: newSelected });
-    this.props.onFilasSeleccionadasChange && this.props.onFilasSeleccionadasChange(this.state.data, newSelected);
+
+    if (this.props.getFilasSeleccionadas)
+      this.props.getFilasSeleccionadas(this.state.data, newSelected);
   };
 
   handleChangePage = (event, page) => {
@@ -220,24 +259,23 @@ class MiTabla extends React.Component {
 
   isSelected = id => this.state.selected.indexOf(id) !== -1;
 
-  getLabelDisplayedRows = _ref => {
-    var from = _ref.from,
-      to = _ref.to,
-      count = _ref.count;
-    return ""
-      .concat(from, "-")
-      .concat(to, " de ")
-      .concat(count);
-  };
-
   render() {
     const { classes } = this.props;
-    const { data, order, orderBy, orderType, selected, rowsPerPage, page } = this.state;
-    const emptyRows = rowsPerPage - Math.min(rowsPerPage, data.length - page * rowsPerPage);
-    const check = this.props.check || false;
+    const {
+      data,
+      order,
+      orderBy,
+      orderType,
+      selected,
+      rowsPerPage,
+      page
+    } = this.state;
+    const emptyRows =
+      rowsPerPage - Math.min(rowsPerPage, data.length - page * rowsPerPage);
+    const check = this.props.check;
 
     return (
-      <div className={classNames(classes.root, this.props.className)}>
+      <div className={classes.root}>
         <div className={classes.tableWrapper}>
           <Table aria-labelledby="tableTitle">
             <EnhancedTableHead
@@ -252,27 +290,30 @@ class MiTabla extends React.Component {
               check={check}
             />
             <TableBody>
-              {stableSort(data, getSorting(order, orderBy, orderType))
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((n, index) => {
-                  const isSelected = this.isSelected(n.id);
+              {(data.length > 0 &&
+                stableSort(data, getSorting(order, orderBy, orderType))
+                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                  .map((n, index) => {
+                    const isSelected = this.isSelected(n.id);
 
-                  return (
-                    <MiRow
-                      key={index}
-                      check={check}
-                      data={n}
-                      classes={classes}
-                      onClick={this.handleClick}
-                      onCheckboxClick={this.handleCheckboxClick}
-                      isSelected={isSelected}
-                      // customCell={this.props.customCell}
-                    />
-                  );
-                })}
+                    return (
+                      <MiRow
+                        key={index}
+                        check={check}
+                        data={n}
+                        classes={classes}
+                        onClick={this.handleClick}
+                        isSelected={isSelected}
+                      />
+                    );
+                  })) || (
+                <TableRow>
+                  <TableCell colSpan={6}>No se encontraron registros</TableCell>
+                </TableRow>
+              )}
               {emptyRows > 0 && (
-                <TableRow style={{ height: (this.props.rowHeight || 49) * emptyRows }}>
-                  <TableCell colSpan={6} padding="default" />
+                <TableRow style={{ height: 49 * emptyRows }}>
+                  <TableCell colSpan={6} />
                 </TableRow>
               )}
             </TableBody>
@@ -281,7 +322,6 @@ class MiTabla extends React.Component {
         <TablePagination
           component="div"
           count={data.length}
-          rowsPerPageOptions={[10, 20, 50]}
           rowsPerPage={rowsPerPage}
           page={page}
           backIconButtonProps={{
@@ -292,8 +332,19 @@ class MiTabla extends React.Component {
           }}
           onChangePage={this.handleChangePage}
           onChangeRowsPerPage={this.handleChangeRowsPerPage}
-          labelRowsPerPage={(this.props.rowType ? this.props.rowType : "") + " por página"}
-          labelDisplayedRows={this.getLabelDisplayedRows}
+          labelRowsPerPage={
+            (this.props.rowType ? this.props.rowType : "Concepto") +
+            " por página"
+          }
+          labelDisplayedRows={function labelDisplayedRows(_ref) {
+            var from = _ref.from,
+              to = _ref.to,
+              count = _ref.count;
+            return ""
+              .concat(from, "-")
+              .concat(to, " de ")
+              .concat(count);
+          }}
         />
       </div>
     );
@@ -302,11 +353,8 @@ class MiTabla extends React.Component {
 
 class MiRow extends React.PureComponent {
   onClick = event => {
-    this.props.onClick && this.props.onClick(event, this.props.data.id);
-  };
-
-  onCheckboxClick = event => {
-    this.props.onCheckboxClick && this.props.onCheckboxClick(event, this.props.data.id);
+    if (this.props.onClick == undefined) return;
+    this.props.onClick(event, this.props.data.id);
   };
 
   render() {
@@ -323,34 +371,24 @@ class MiRow extends React.PureComponent {
         key={this.props.data.id}
         selected={this.props.isSelected || false}
       >
-        {check == true && (
+        {check && (
           <TableCell padding="checkbox">
-            <Checkbox checked={this.props.isSelected || false} onClick={this.onCheckboxClick} />
+            <Checkbox checked={this.props.isSelected || false} />
           </TableCell>
         )}
         {Object.keys(this.props.data).map((cell, key) => {
           if (cell == "data") return; //'data' son datos extras para utilizar
           return (
             cell != "id" && (
-              <TableCell className={classes.tableCell} key={cell} padding="default">
+              <TableCell key={cell} padding="default">
                 {this.props.data[cell]}
               </TableCell>
             )
           );
         })}
-        {/* {this.renderCustomCell()} */}
       </TableRow>
     );
   }
-
-  // renderCustomCell = () => {
-  //   return <TableCell padding="none">{this.renderCustomCellContent()}</TableCell>;
-  // };
-
-  // renderCustomCellContent = () => {
-  //   if (this.props.customCell == undefined) return null;
-  //   return this.props.customCell(this.props.data);
-  // };
 }
 
 MiTabla.propTypes = {
